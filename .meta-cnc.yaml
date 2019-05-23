@@ -39,10 +39,15 @@ variables:
     description: Email Recepient of Report
     default: operator@telco.net
     type_hint: email
-  - name: requester
-    description: Requester Name
-    default: Your Name Here
+  - name: requester_email
+    description: Requester Emmail
+    default: your@email_here.io
+    type_hint: email
+  - name: prepared_by
+    description: Prepared By
+    default: Panhandler
     type_hint: text
+
 
 # Snippets is an ordered list of configuration xml fragments that will be pushed to the PAN-OS NGFW. The xpath
 # determines where in the configuration hierarchy the xml fragment will be set. 'file' indicates the name of the file

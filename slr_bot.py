@@ -140,7 +140,8 @@ def main():
     parser.add_argument("-p", "--password", help="Firewall Password", type=str)
     parser.add_argument("-a", "--support_api_key", help="Support Portal API Key", type=str)
     parser.add_argument("-e", "--email", help="Email Address to send the SLR", type=str)
-    parser.add_argument("-r", "--requester", help="Name of SLR Requester", type=str)
+    parser.add_argument("-r", "--requester_email", help="Email of SLR Requester", type=str)
+    parser.add_argument("-r", "--prepared_by", help="Name to use as prepared by field", type=str)
     args = parser.parse_args()
     if len(sys.argv) < 2:
         parser.print_help()
@@ -149,7 +150,8 @@ def main():
     fw_ip = args.firewall
     username = args.username
     password = args.password
-    requester = args.requester
+    requester = args.requester_email
+    prepared_by = args.prepared_by
     support_api_key = args.support_api_key
     emails = args.email
     email_list = list()
@@ -160,7 +162,7 @@ def main():
     options = {
         "EmailIdList": email_list,
         "RequestedBy": requester,
-        "PreparedBy": "Panhandler",
+        "PreparedBy": prepared_by,
         "cspKey": support_api_key
     }
     key = getKey(fw_ip, username, password)
