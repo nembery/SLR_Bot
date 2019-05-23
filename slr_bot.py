@@ -1,23 +1,26 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+
+import argparse
+import getpass
+import os
+import sys
+import xml.etree.ElementTree as et
+from time import sleep
 
 import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-import xml.etree.ElementTree as et
-import getpass
-import argparse
-import sys
-from time import sleep
-import os
+from urllib3.exceptions import InsecureRequestWarning
+import urllib3
 
 # be able to support python 2.x or 3.x data input
 try:
-   input = raw_input
+    input = raw_input
 except NameError as e:
-   print("Error assigning raw_input as input")
-   print(e)
-   exit(1)
+    print("Error assigning raw_input as input")
+    print(e)
+    exit(1)
 
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+urllib3.disable_warnings(InsecureRequestWarning)
+
 
 def readOpts():
     """Reads options from configuration file"""
@@ -38,13 +41,11 @@ def readOpts():
     return opts_dict
 
 
-def getKey(dev_IP):
+def getKey(dev_IP, user, passwd):
     """Retrieves an API key from the porvided firewall"""
-    user = input("Enter the API user name: ")
-    passwd = getpass.getpass("Enter the API password: ")
-    key_params = {"type" : "keygen",
-              "user" : user,
-              "password" : passwd}
+    key_params = {"type": "keygen",
+                  "user": user,
+                  "password": passwd}
     key_req = requests.get("https://{}/api/?".format(dev_IP), params=key_params, verify=False)
     key_xml = et.fromstring(key_req.content)
     api_key = key_xml.find('./result/key').text
@@ -53,9 +54,9 @@ def getKey(dev_IP):
 
 def genStats(dev_ip, panos_key):
     """Issues call to the firewall to generate a stats dump"""
-    stat_params = {"type" : "export",
-                   "category" : "stats-dump",
-                   "key" : panos_key}
+    stat_params = {"type": "export",
+                   "category": "stats-dump",
+                   "key": panos_key}
     stats_req = requests.get("https://{}/api/?".format(dev_ip), params=stat_params, verify=False)
     if stats_req.status_code != 200:
         print("Request to generate stats dump failed. Exiting now.")
@@ -72,9 +73,9 @@ def genStats(dev_ip, panos_key):
 def jobChecker(dev_ip, panos_key, job_id):
     """Checks the status of the job that is passed in."""
     cmd = "<show><jobs><id>{}</id></jobs></show>".format(job_id)
-    status_params = {"type" : "op",
-                  "cmd" : cmd,
-                  "key" : panos_key}
+    status_params = {"type": "op",
+                     "cmd": cmd,
+                     "key": panos_key}
     status = ""
     while status != "FIN":
         status_req = requests.get("https://{}/api/?".format(dev_ip), params=status_params, verify=False)
@@ -98,11 +99,11 @@ def jobChecker(dev_ip, panos_key, job_id):
 def downloadStats(dev_ip, panos_key, job_id):
     """Downloads the statsdump file"""
     stats_file = "stats_dump.tar.gz"
-    dl_params = {"type" : "export",
-                 "category" : "stats-dump",
-                 "action" : "get",
-                 "job-id" : job_id,
-                 "key" : panos_key}
+    dl_params = {"type": "export",
+                 "category": "stats-dump",
+                 "action": "get",
+                 "job-id": job_id,
+                 "key": panos_key}
     dl_req = requests.get("https://{}/api/?".format(dev_ip), params=dl_params, stream=True, verify=False)
     print('downloading stats dump file')
     with open(stats_file, 'wb') as f:
@@ -116,11 +117,11 @@ def submitStats(file_name, opts):
     """Test function to submit stats dump for SLR generation"""
     file1 = open(file_name, 'rb')
     url = "https://riskreport.paloaltonetworks.com/API/v1/Create"
-    headers = {"apiKey" : opts['cspKey']}
-    file = {"file1":('stats_dump.tar.gz', file1, 'application/gzip')}
-    payload = {"EmailIdList" : ",".join(opts['EmailIdList']),
-               "RequestedBy" : opts["RequestedBy"],
-               "PreparedBy" : opts['PreparedBy']}
+    headers = {"apiKey": opts['cspKey']}
+    file = {"file1": ('stats_dump.tar.gz', file1, 'application/gzip')}
+    payload = {"EmailIdList": ",".join(opts['EmailIdList']),
+               "RequestedBy": opts["RequestedBy"],
+               "PreparedBy": opts['PreparedBy']}
     print('uploading stats file and SLR parameters')
     slr_req = requests.post(url, headers=headers, data=payload, files=file)
     if slr_req.status_code != 200:
@@ -133,33 +134,37 @@ def submitStats(file_name, opts):
     os.remove(file_name)
 
 
-
-
-
-
-
-
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--firewall", help="IP address of the firewall to pull the stats dump from", type=str)
+    parser.add_argument("-u", "--username", help="Firewall Username", type=str)
+    parser.add_argument("-p", "--password", help="Firewall Password", type=str)
+    parser.add_argument("-a", "--support_api_key", help="Support Portal API Key", type=str)
+    parser.add_argument("-e", "--email", help="Email Address to send the SLR", type=str)
+    parser.add_argument("-r", "--requester", help="Name of SLR Requester", type=str)
     args = parser.parse_args()
     if len(sys.argv) < 2:
         parser.print_help()
         parser.exit()
         exit(1)
     fw_ip = args.firewall
-    options = readOpts()
-    key = getKey(fw_ip)
+    username = args.username
+    password = args.password
+    requester = args.requester
+    support_api_key = args.support_api_key
+    email = args.email
+    # options = readOpts()
+    options = {
+        "EmailIdList": email,
+        "RequestedBy": requester,
+        "cspKey": support_api_key
+    }
+    key = getKey(fw_ip, username, password)
     job_key = genStats(fw_ip, key)
     stats_file = downloadStats(fw_ip, key, job_key)
     submitStats(stats_file, options)
     print('SLR creation complete. Check email provided in conf file')
 
 
-
-
 if __name__ == '__main__':
     main()
-
