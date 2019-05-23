@@ -141,7 +141,7 @@ def main():
     parser.add_argument("-a", "--support_api_key", help="Support Portal API Key", type=str)
     parser.add_argument("-e", "--email", help="Email Address to send the SLR", type=str)
     parser.add_argument("-r", "--requester_email", help="Email of SLR Requester", type=str)
-    parser.add_argument("-r", "--prepared_by", help="Name to use as prepared by field", type=str)
+    parser.add_argument("-b", "--prepared_by", help="Name to use as prepared by field", type=str)
     args = parser.parse_args()
     if len(sys.argv) < 2:
         parser.print_help()
