@@ -11,13 +11,13 @@ import requests
 from urllib3.exceptions import InsecureRequestWarning
 import urllib3
 
-# be able to support python 2.x or 3.x data input
-try:
-    input = raw_input
-except NameError as e:
-    print("Error assigning raw_input as input")
-    print(e)
-    exit(1)
+# # be able to support python 2.x or 3.x data input
+# try:
+#     input = raw_input
+# except NameError as e:
+#     print("Error assigning raw_input as input")
+#     print(e)
+#     exit(1)
 
 urllib3.disable_warnings(InsecureRequestWarning)
 
