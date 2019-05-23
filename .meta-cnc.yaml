@@ -40,7 +40,7 @@ variables:
     default: operator@telco.net
     type_hint: email
   - name: requester_email
-    description: Requester Emmail
+    description: Requester Email
     default: your@email_here.io
     type_hint: email
   - name: prepared_by
