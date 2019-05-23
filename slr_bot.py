@@ -1,15 +1,14 @@
 #!/usr/bin/python3
 
 import argparse
-import getpass
 import os
 import sys
 import xml.etree.ElementTree as et
 from time import sleep
 
 import requests
-from urllib3.exceptions import InsecureRequestWarning
 import urllib3
+from urllib3.exceptions import InsecureRequestWarning
 
 # # be able to support python 2.x or 3.x data input
 # try:
@@ -152,18 +151,23 @@ def main():
     password = args.password
     requester = args.requester
     support_api_key = args.support_api_key
-    email = args.email
-    # options = readOpts()
+    emails = args.email
+    email_list = list()
+    if ',' in emails:
+        email_list.extend(emails.split(','))
+    else:
+        email_list.append(emails)
     options = {
-        "EmailIdList": email,
+        "EmailIdList": email_list,
         "RequestedBy": requester,
+        "PreparedBy": "Panhandler",
         "cspKey": support_api_key
     }
     key = getKey(fw_ip, username, password)
     job_key = genStats(fw_ip, key)
     stats_file = downloadStats(fw_ip, key, job_key)
     submitStats(stats_file, options)
-    print('SLR creation complete. Check email provided in conf file')
+    print('SLR creation complete. Check email provided for full report.')
 
 
 if __name__ == '__main__':
